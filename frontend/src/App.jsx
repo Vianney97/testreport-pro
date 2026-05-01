@@ -43,7 +43,6 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: "#F5F7FA", fontFamily: "Arial, sans-serif" }}>
 
-      {/* Header */}
       <div style={{ background: "#1F5C99", padding: "16px 32px", display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ color: "white", fontSize: 22, fontWeight: "bold" }}>TestReport</span>
         <span style={{ color: "#7BC8F6", fontSize: 22, fontWeight: "bold" }}>Pro</span>
@@ -51,12 +50,11 @@ export default function App() {
 
       <div style={{ maxWidth: 900, margin: "40px auto", padding: "0 24px" }}>
 
-        {/* Upload card */}
         <div style={{ background: "white", borderRadius: 12, padding: 32, border: "1px solid #E0E0E0", marginBottom: 24 }}>
           <h2 style={{ margin: "0 0 16px", color: "#1A1A2E", fontSize: 20 }}>Importer vos résultats de tests</h2>
 
           <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-            {["playwright", "pytest"].map(f => (
+            {["playwright", "pytest", "cucumber"].map(f => (
               <button
                 key={f}
                 onClick={() => setFramework(f)}
@@ -66,20 +64,18 @@ export default function App() {
                   color: framework === f ? "white" : "#1F5C99"
                 }}
               >
-                {f === "playwright" ? "Playwright (JSON)" : "Pytest (XML)"}
+                {f === "playwright" ? "Playwright (JSON)" : f === "pytest" ? "Pytest (XML)" : "Cucumber (JSON)"}
               </button>
             ))}
           </div>
 
-          <input type="file" accept={framework === "playwright" ? ".json" : ".xml"} onChange={handleUpload} style={{ fontSize: 14 }} />
+          <input type="file" accept={framework === "pytest" ? ".xml" : ".json"} onChange={handleUpload} style={{ fontSize: 14 }} />
           {loading && <p style={{ color: "#1F5C99", marginTop: 12 }}>Analyse en cours...</p>}
           {error && <p style={{ color: "#E24B4A", marginTop: 12 }}>{error}</p>}
         </div>
 
-        {/* Dashboard */}
         {report && (
           <>
-            {/* KPIs */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
               {[
                 { label: "Total", value: report.total, color: "#1F5C99" },
@@ -94,7 +90,6 @@ export default function App() {
               ))}
             </div>
 
-            {/* Charts */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
               <div style={{ background: "white", borderRadius: 12, padding: 24, border: "1px solid #E0E0E0" }}>
                 <h3 style={{ margin: "0 0 16px", fontSize: 15, color: "#1A1A2E" }}>Répartition des tests</h3>
@@ -128,7 +123,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Tests list */}
             <div style={{ background: "white", borderRadius: 12, padding: 24, border: "1px solid #E0E0E0" }}>
               <h3 style={{ margin: "0 0 16px", fontSize: 15, color: "#1A1A2E" }}>Détail des tests</h3>
               {report.tests.map((test, i) => (
