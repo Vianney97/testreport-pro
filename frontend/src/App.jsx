@@ -23,7 +23,7 @@ export default function App() {
 
     try {
       const res = await axios.post(
-        `http://127.0.0.1:8000/upload/${framework}`,
+        `https://testreport-pro-production.up.railway.app/upload/${framework}`,
         formData
       );
       setReport(res.data);
