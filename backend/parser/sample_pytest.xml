@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+  <testsuite name="tests" tests="4" errors="0" failures="1" skipped="1">
+    <testcase classname="tests.test_login" name="test_login_success" time="0.532"/>
+    <testcase classname="tests.test_login" name="test_login_wrong_password" time="0.310">
+      <failure message="AssertionError: Expected status 401 but got 200">AssertionError</failure>
+    </testcase>
+    <testcase classname="tests.test_auth" name="test_logout_redirect" time="0.421"/>
+    <testcase classname="tests.test_auth" name="test_session_expiry" time="0.100">
+      <skipped message="Not implemented yet"/>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,21 @@
+{
+  "suites": [{
+    "specs": [
+      {
+        "title": "Login page loads correctly",
+        "file": "tests/login.spec.ts",
+        "tests": [{"results": [{"status": "passed", "duration": 1200}]}]
+      },
+      {
+        "title": "Form validation works",
+        "file": "tests/login.spec.ts",
+        "tests": [{"results": [{"status": "failed", "duration": 800, "errors": [{"message": "Expected 'Error' but got ''"}]}]}]
+      },
+      {
+        "title": "Logout redirects correctly",
+        "file": "tests/auth.spec.ts",
+        "tests": [{"results": [{"status": "passed", "duration": 650}]}]
+      }
+    ]
+  }]
+}
