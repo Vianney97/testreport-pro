@@ -3,12 +3,12 @@ import axios from "axios";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts/es6";
 
 const COLORS = { passed: "#1D9E75", failed: "#E24B4A", skipped: "#BA7517" };
+const API = "https://testreport-pro-production.up.railway.app";
 
 export default function App() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [framework, setFramework] = useState("playwright");
 
   async function handleUpload(e) {
     const file = e.target.files[0];
@@ -22,13 +22,11 @@ export default function App() {
     setReport(null);
 
     try {
-      const res = await axios.post(
-        `https://testreport-pro-production.up.railway.app/upload/${framework}`,
-        formData
-      );
+      const res = await axios.post(`${API}/upload`, formData);
       setReport(res.data);
     } catch (err) {
-      setError("Erreur lors de l'upload. Vérifie que l'API tourne et que le fichier est correct.");
+      const msg = err.response?.data?.detail || "Format non reconnu ou API indisponible.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -46,36 +44,39 @@ export default function App() {
       <div style={{ background: "#1F5C99", padding: "16px 32px", display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ color: "white", fontSize: 22, fontWeight: "bold" }}>TestReport</span>
         <span style={{ color: "#7BC8F6", fontSize: 22, fontWeight: "bold" }}>Pro</span>
+        <span style={{ color: "#B0D0F0", fontSize: 13, marginLeft: 8 }}>v2.0 — Universal Parser</span>
       </div>
 
       <div style={{ maxWidth: 900, margin: "40px auto", padding: "0 24px" }}>
 
         <div style={{ background: "white", borderRadius: 12, padding: 32, border: "1px solid #E0E0E0", marginBottom: 24 }}>
-          <h2 style={{ margin: "0 0 16px", color: "#1A1A2E", fontSize: 20 }}>Importer vos résultats de tests</h2>
+          <h2 style={{ margin: "0 0 8px", color: "#1A1A2E", fontSize: 20 }}>Importer vos résultats de tests</h2>
+          <p style={{ margin: "0 0 20px", color: "#888", fontSize: 13 }}>
+            Formats supportés : Playwright · Pytest XML · Pytest JSON · Cucumber · Jest · Mocha
+          </p>
 
-          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-            {["playwright", "pytest", "cucumber"].map(f => (
-              <button
-                key={f}
-                onClick={() => setFramework(f)}
-                style={{
-                  padding: "8px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: "bold",
-                  background: framework === f ? "#1F5C99" : "#E8F0FB",
-                  color: framework === f ? "white" : "#1F5C99"
-                }}
-              >
-                {f === "playwright" ? "Playwright (JSON)" : f === "pytest" ? "Pytest (XML)" : "Cucumber (JSON)"}
-              </button>
-            ))}
-          </div>
-
-          <input type="file" accept={framework === "pytest" ? ".xml" : ".json"} onChange={handleUpload} style={{ fontSize: 14 }} />
-          {loading && <p style={{ color: "#1F5C99", marginTop: 12 }}>Analyse en cours...</p>}
+          <input
+            type="file"
+            accept=".json,.xml"
+            onChange={handleUpload}
+            style={{ fontSize: 14 }}
+          />
+          {loading && (
+            <p style={{ color: "#1F5C99", marginTop: 12 }}>
+              Détection du format et analyse en cours...
+            </p>
+          )}
           {error && <p style={{ color: "#E24B4A", marginTop: 12 }}>{error}</p>}
         </div>
 
         {report && (
           <>
+            {/* Framework détecté */}
+            <div style={{ background: "#E8F0FB", borderRadius: 8, padding: "10px 16px", marginBottom: 20, fontSize: 13, color: "#1F5C99" }}>
+              ✓ Format détecté : <strong>{report.framework}</strong>
+            </div>
+
+            {/* KPIs */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
               {[
                 { label: "Total", value: report.total, color: "#1F5C99" },
@@ -90,6 +91,7 @@ export default function App() {
               ))}
             </div>
 
+            {/* Charts */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
               <div style={{ background: "white", borderRadius: 12, padding: 24, border: "1px solid #E0E0E0" }}>
                 <h3 style={{ margin: "0 0 16px", fontSize: 15, color: "#1A1A2E" }}>Répartition des tests</h3>
@@ -123,6 +125,7 @@ export default function App() {
               </div>
             </div>
 
+            {/* Tests list */}
             <div style={{ background: "white", borderRadius: 12, padding: 24, border: "1px solid #E0E0E0" }}>
               <h3 style={{ margin: "0 0 16px", fontSize: 15, color: "#1A1A2E" }}>Détail des tests</h3>
               {report.tests.map((test, i) => (
