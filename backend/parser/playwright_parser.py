@@ -23,42 +23,46 @@ class ReportSummary:
     tests: List[TestResult] = field(default_factory=list)
 
 
+def extract_tests_from_suite(suite: dict, tests: list, file_path: str = ""):
+    current_file = suite.get("file", file_path) or file_path
+
+    for spec in suite.get("tests", []):
+        spec_title = spec.get("title", "Unknown")
+        spec_file = spec.get("file", current_file) or current_file
+
+        for result in spec.get("tests", []):
+            status = result.get("status", "unknown")
+            duration = result.get("duration", 0)
+            error = ""
+            if result.get("errors"):
+                error = result["errors"][0].get("message", "")
+
+            tests.append(TestResult(
+                name=spec_title,
+                status=status,
+                duration_ms=duration,
+                error_message=error,
+                file_path=spec_file
+            ))
+
+    for sub_suite in suite.get("suites", []):
+        extract_tests_from_suite(sub_suite, tests, current_file)
+
+
 def parse_playwright(file_path: str) -> ReportSummary:
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     tests = []
-    total = passed = failed = skipped = 0
-    total_duration = 0
 
     for suite in data.get("suites", []):
-        for spec in suite.get("specs", []):
-            for test in spec.get("tests", []):
-                for result in test.get("results", []):
-                    status = result.get("status", "unknown")
-                    duration = result.get("duration", 0)
-                    error = ""
+        extract_tests_from_suite(suite, tests)
 
-                    if result.get("errors"):
-                        error = result["errors"][0].get("message", "")
-
-                    tests.append(TestResult(
-                        name=spec.get("title", "Unknown"),
-                        status=status,
-                        duration_ms=duration,
-                        error_message=error,
-                        file_path=spec.get("file", "")
-                    ))
-
-                    total += 1
-                    total_duration += duration
-                    if status == "passed":
-                        passed += 1
-                    elif status == "failed":
-                        failed += 1
-                    else:
-                        skipped += 1
-
+    total = len(tests)
+    passed = sum(1 for t in tests if t.status == "passed")
+    failed = sum(1 for t in tests if t.status == "failed")
+    skipped = sum(1 for t in tests if t.status not in ["passed", "failed"])
+    total_duration = sum(t.duration_ms for t in tests)
     success_rate = round((passed / total * 100), 1) if total > 0 else 0
 
     return ReportSummary(
