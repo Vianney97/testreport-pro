@@ -122,22 +122,34 @@ def parse_playwright_custom(data: dict) -> ReportSummary:
 def parse_jest(data: dict) -> ReportSummary:
     tests = []
     total = passed = failed = skipped = 0
-    total_duration = float(data.get("testResults", [{}])[0].get("perfStats", {}).get("runtime", 0))
+    total_duration = 0.0
 
     for suite in data.get("testResults", []):
-        file_path = suite.get("testFilePath", "")
-        for test in suite.get("testResults", []):
-            name = test.get("fullName", "Unknown")
-            status_raw = test.get("status", "unknown")
+        file_path = suite.get("name", "")
+
+        # Le vrai format Jest utilise "assertionResults"
+        assertions = suite.get("assertionResults", suite.get("testResults", []))
+
+        for test in assertions:
+            name = test.get("title", test.get("fullName", "Unknown"))
             duration = test.get("duration", 0) or 0
+            status_raw = test.get("status", "unknown")
             error = " ".join(test.get("failureMessages", []))[:200]
-            status = "passed" if status_raw == "passed" else "failed" if status_raw == "failed" else "skipped"
+
+            # Jest utilise "pending" pour skipped
+            if status_raw == "passed":
+                status = "passed"
+            elif status_raw == "failed":
+                status = "failed"
+            else:
+                status = "skipped"
 
             tests.append(TestResult(
                 name=name, status=status, duration_ms=duration,
                 error_message=error, file_path=file_path
             ))
             total += 1
+            total_duration += duration
             if status == "passed": passed += 1
             elif status == "failed": failed += 1
             else: skipped += 1
